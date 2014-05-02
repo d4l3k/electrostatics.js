@@ -32,12 +32,23 @@
     Vector.prototype.magnitude = function(){
         return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
     }
+    Vector.prototype.normalize = function(){
+        this.multiply(1/this.magnitude());
+        return this;
+    }
     Vector.prototype.clone = function(){
         return new Vector(this.x, this.y, this.z);
     }
     ES.Vector = Vector
 
+    function PointMass(mass, charge, position, velocity){
+        this.mass = mass;
+        this.charge = charge || 0;
+        this.position = position || new Vector(0,0,0);
+        this.velocity = velocity || new Vector(0,0,0);
+    }
 
+    ES.PointMass = PointMass;
 
 
     window.ES = ES;
