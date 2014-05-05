@@ -73,7 +73,7 @@
     }
     PointCharge.prototype.force = function(other){
         if(other.constructor.name == "PointCharge"){
-            return ES.k * this.charge * other.charge /
+            return -ES.k * this.charge * other.charge /
                 Math.pow(this.position.distance(other.position), 2);
         } else {
             throw "ERROR: Only can calculate force between PointCharges";
@@ -101,13 +101,29 @@
     // ES.Universe - Core of the engine
     function Universe(step_size){
         this.particles = [];
-        this.step_size = step_size || 0.01;
+        this.step_size = step_size || 0.00001;
     }
     Universe.prototype.add = function(particle){
         this.particles.push(particle);
     }
+    Universe.prototype.steps = function(steps){
+        for(var i=0;i<steps;i++){
+            this.step();
+        }
+    }
     Universe.prototype.step = function(){
-
+        _.each(this.particles, function(particle){
+            _.each(this.particles, function(particle2){
+                if(particle != particle2){
+                    var acceleration = particle.accelerationVector(particle2);
+                    particle.velocity.add(acceleration.multiply(this.step_size));
+                }
+            }, this);
+        }, this);
+        // We have to wait until all of the velocities are calculated before moving the particles otherwise the distances get all screwed up.
+        _.each(this.particles, function(particle){
+            particle.position.add(particle.velocity.clone().multiply(this.step_size))
+        }, this);
     }
     ES.Universe = Universe;
 
