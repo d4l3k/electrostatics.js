@@ -28,7 +28,7 @@ function updatePosition(){
     }).attr("cy", function(d, i){
         return d.position.y*scale+window.innerHeight/2;
     }).attr("r", function(d, i){
-        return d.position.z*10+5;
+        return d.position.z*20+10;
     }).attr("fill", function(d, i){
         return d.charge > 0 ? "red" : "blue";
     });
