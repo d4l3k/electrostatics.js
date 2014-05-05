@@ -1,13 +1,21 @@
-var charge_a = new ES.Electron(new ES.Vector(0.0,0.0,0.0));
-var charge_b = new ES.Electron(new ES.Vector(0.1,-0.05,0.0));
-var charge_c = new ES.PointCharge(1, ES.elementary_charge, new ES.Vector(0.05,0.1,0.0));
 
 var universe = new ES.Universe();
-universe.add(charge_a);
-universe.add(charge_b);
-universe.add(charge_c);
+var size = 1;
+for(var i=0;i< 100;i++){
+    universe.add(new ES.PointCharge(ES.electron_mass, ES.elementary_charge * (Math.round(Math.random())*2-1),
+        new ES.Vector(size*Math.random()-size/2,
+            size*Math.random()-size/2,
+            size*Math.random()-size/2
+        ), new ES.Vector(1,0,0)
+    ));
+}
 
-var scale = 1000;
+//universe.add( new ES.Electron(new ES.Vector(0.0,0.0,0.0)));
+//universe.add( new ES.Electron(new ES.Vector(0.1,-0.05,0.0)));
+
+//universe.add( new ES.PointCharge(1, ES.elementary_charge*10, new ES.Vector(0.0,0.0,0.0)));
+
+var scale = 500;
 
 var svg = d3.select("svg");
 var circles = svg.selectAll("circle")
@@ -19,10 +27,15 @@ function updatePosition(){
         return d.position.x*scale+window.innerWidth/2;
     }).attr("cy", function(d, i){
         return d.position.y*scale+window.innerHeight/2;
-    }).attr("r", 5);
+    }).attr("r", function(d, i){
+        return d.position.z*10+5;
+    }).attr("fill", function(d, i){
+        return d.charge > 0 ? "red" : "blue";
+    });
 }
-updatePosition();
 
-var interval = setInterval(function(){
-    universe.step(); updatePosition();
-},10);
+var render_loop = function(){
+    universe.steps(1); updatePosition();
+    requestAnimationFrame(render_loop);
+}
+render_loop();

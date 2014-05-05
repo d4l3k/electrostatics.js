@@ -73,8 +73,10 @@
     }
     PointCharge.prototype.force = function(other){
         if(other.constructor.name == "PointCharge"){
+            var r = this.position.distance(other.position);
+            //if(r < 0.003) r=0.003;
             return -ES.k * this.charge * other.charge /
-                Math.pow(this.position.distance(other.position), 2);
+                Math.pow(r, 2);
         } else {
             throw "ERROR: Only can calculate force between PointCharges";
         }
