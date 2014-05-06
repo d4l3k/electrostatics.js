@@ -5,8 +5,8 @@ for(var i=0;i< 100;i++){
     universe.add(new ES.PointCharge(ES.electron_mass, ES.elementary_charge * (Math.round(Math.random())*2-1),
         new ES.Vector(size*Math.random()-size/2,
             size*Math.random()-size/2,
-            size*Math.random()-size/2
-        ), new ES.Vector(1,0,0)
+            0
+        ), new ES.Vector(0,0,0)
     ));
 }
 
