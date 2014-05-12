@@ -56,6 +56,12 @@
     Vector.prototype.clone = function(){
         return new Vector(this.x, this.y, this.z);
     }
+    Vector.prototype.abs = function(){
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        this.z = Math.abs(this.z);
+        return this;
+    }
     // Convenience function
     Vector.prototype.distance = function(vec){
         return this.clone().subtract(vec).magnitude();
@@ -82,31 +88,53 @@
         }
     }
     PointCharge.prototype.forceVector = function(other){
-        if(other.constructor.name == "PointCharge"){
-            return other.position.clone().subtract(this.position).normalize()
-                .multiply(this.force(other));
-        }
+        return other.position.clone().subtract(this.position).normalize()
+            .multiply(this.force(other));
     }
     PointCharge.prototype.accelerationVector = function(other){
-        if(other.constructor.name == "PointCharge"){
-            return this.forceVector(other).multiply(1/this.mass);
-        }
+        return this.forceVector(other).multiply(1/this.mass);
     }
     ES.PointCharge = PointCharge;
 
     // ES.Electron - Helper function to create an electron.
     function Electron(position, velocity){
-        return new PointCharge(ES.electron_mass, -ES.elementary_charge, position, velocity);
+        return new PointCharge(ES.electron_mass,
+            -ES.elementary_charge, position, velocity);
     }
     ES.Electron = Electron;
+
+    function UniformElectricField(charge, position, size, direction){
+        //self.mass = Math.pow(10,100);
+        this.charge = charge;
+        this.position = position;
+        this.size = size;
+        this.direction = direction.clone().normalize();
+    }
+    UniformElectricField.prototype.force = function(other){
+        if(other.constructor.name == "PointCharge"){
+            // TODO: FIX THIS
+            if(this.position.clone().subtract(other.position).abs().less(this.size)){
+                return this.charge * other.charge;
+            }
+        }
+    }
+    UniformElectricField.prototype.forceVector = function(other){
+        return this.direction.clone().multiply(this.force(other));
+    }
+    ES.UniformElectricField = UniformElectricField;
 
     // ES.Universe - Core of the engine
     function Universe(step_size){
         this.particles = [];
+        this.fields = [];
         this.step_size = step_size || 0.00001;
     }
-    Universe.prototype.add = function(particle){
-        this.particles.push(particle);
+    Universe.prototype.add = function(item){
+        if(item.constructor.name == "PointCharge"){
+            this.particles.push(item);
+        } else {
+            this.fields.push(item);
+        }
     }
     Universe.prototype.steps = function(steps){
         for(var i=0;i<steps;i++){
@@ -114,12 +142,17 @@
         }
     }
     Universe.prototype.step = function(){
-        _.each(this.particles, function(particle){
-            _.each(this.particles, function(particle2){
-                if(particle != particle2){
-                    var acceleration = particle.accelerationVector(particle2);
-                    particle.velocity.add(acceleration.multiply(this.step_size));
-                }
+        _.each(this.particles, function(particle, index){
+            for(var i= index+1; i< this.particles.length; i++){
+                var particle2 = this.particles[i];
+                var force = particle.forceVector(particle2);
+                particle.velocity.add(force.clone().multiply(this.step_size/particle.mass));
+                particle2.velocity.subtract(force.clone().multiply(this.step_size/particle2.mass));
+            };
+        }, this);
+        _.each(this.fields, function(field, index){
+            _.each(this.particles, function(particle, c){
+                particle.velocity.add(field.forceVector(particle).multiply(this.step_size/particle.mass));
             }, this);
         }, this);
         // We have to wait until all of the velocities are calculated before moving the particles otherwise the distances get all screwed up.
