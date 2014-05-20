@@ -1,0 +1,97 @@
+<head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        #id {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info">
+        This is based off the CRT problem.
+    </div>
+</body>
+<script src="../src/electrostatics.js"></script>
+<script src="../lib/underscore-min.js"></script>
+<script src="../lib/three.min.js"></script>
+<script>
+    var universe = new ES.Universe(0.0000000001);
+
+    universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
+    universe.add(new ES.UniformElectricField(500/0.05, new ES.Vector(0,0,0),
+        new ES.Vector(0.1, 1, 1), new ES.Vector(-1,0,0)));
+    //universe.add( new ES.Electron(new ES.Vector(0.1,-0.05,0.0)));
+
+    //universe.add( new ES.PointCharge(1, ES.elementary_charge*10, new ES.Vector(0.0,0.0,0.0)));
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+    var renderer = new THREE.WebGLRenderer({
+        alpha: true
+    });
+    window.onresize = function() {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }
+    window.onresize();
+    document.body.appendChild(renderer.domElement);
+
+    // directional lighting
+    var directionalLight = new THREE.DirectionalLight(0xffffff);
+    directionalLight.position.set(1, 1, 1).normalize();
+    scene.add(directionalLight);
+
+    _.each(universe.particles, function(particle) {
+        var geometry = new THREE.SphereGeometry(0.02, 16, 16);
+        var material = new THREE.MeshLambertMaterial({
+            color: (particle.charge > 0 ? 0xff0000 : 0x0000ff)
+        });
+        var mesh = new THREE.Mesh(geometry, material);
+        particle.mesh = mesh;
+        mesh.position.x = particle.position.x;
+        mesh.position.y = particle.position.y;
+        mesh.position.z = particle.position.z;
+        scene.add(mesh);
+    });
+
+    camera.position.z = 1;
+
+    var render_loop = function() {
+        universe.steps(5);
+        requestAnimationFrame(render_loop);
+        _.each(universe.particles, function(particle) {
+            mesh = particle.mesh;
+            mesh.position.x = particle.position.x;
+            mesh.position.y = particle.position.y;
+            mesh.position.z = particle.position.z;
+        });
+        renderer.render(scene, camera);
+    }
+    render_loop();
+
+(function(){
+    for(var i=1; i<= 20; i++){
+        var stepsize = Math.pow(10, -i);
+        // GOOD 0.0000000001
+        var test_universe = new ES.Universe(stepsize);
+
+        test_universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
+        test_universe.add(new ES.UniformElectricField(500/0.05, new ES.Vector(0,0,0),
+            new ES.Vector(0.1, 1, 1), new ES.Vector(-1,0,0)));
+        test_universe.steps(1000000);
+        console.log("UNVIERSE", stepsize, test_universe.particles[0].velocity.x);
+    }
+})();
+</script>

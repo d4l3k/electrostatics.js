@@ -4,22 +4,62 @@
             margin: 0;
             padding: 0;
         }
+        body {
+            font-family: 'Open Sans', 'Arial', 'Sans';
+        }
         canvas {
             width: 100%;
             height: 100%;
+        }
+        #id {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #info {
+            position: absolute;
+            top: -1;
+            color: white;
+            left: -1;
+            background-color: rgba(0,0,0,0.75);
+            border: 1px solid black;
+            display: inline-block;
+            padding: 10px;
+            border-bottom-right-radius: 4px;
         }
     </style>
 </head>
 
 <body>
+    <div id="info">
+        This is based off the CRT problem.
+        <br>
+        Start Potential Difference <input type="text" id="pv" value="500">V
+        <h3>Vertical Plate</h3>
+        E=<input type="text" id="v_e" value="1000">
+        <br>
+        x=<input type="text" id="v_x" value="1">m
+        <br>
+        width=<input type="text" id="v_width" value="0.1">m
+        <br>
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+        <div id="particle_info">
+        </div>
+    </div>
 </body>
 <script src="../src/electrostatics.js"></script>
 <script src="../lib/underscore-min.js"></script>
+<script src="../lib/jquery-2.1.1.min.js"></script>
 <script src="../lib/three.min.js"></script>
 <script>
-    var universe = new ES.Universe();
+    var universe = new ES.Universe(0.0000000001);
 
-    universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0), new ES.Vector(100.0, 0, 0)));
+    universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
+    universe.add(new ES.UniformElectricField(0, new ES.Vector(0,0,0),
+        new ES.Vector(0.2, 0.1, 0.1), new ES.Vector(-1,0,0)));
+    universe.add(new ES.UniformElectricField(1000, new ES.Vector(1,0,0),
+        new ES.Vector(0.1, 0.1, 0.1), new ES.Vector(0,-1,0)));
     //universe.add( new ES.Electron(new ES.Vector(0.1,-0.05,0.0)));
 
     //universe.add( new ES.PointCharge(1, ES.elementary_charge*10, new ES.Vector(0.0,0.0,0.0)));
@@ -55,20 +95,70 @@
         mesh.position.z = particle.position.z;
         scene.add(mesh);
     });
-
-
     camera.position.z = 1;
+    camera.position.x = 0.9;
 
+    var field = universe.fields[0];
+    var geometry = new THREE.BoxGeometry(0.001, field.size.y*2, field.size.z*2);
+    var material = new THREE.MeshLambertMaterial({
+        color: 0x00ffff
+    });
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = field.position.x - field.size.x;
+    mesh.position.y = field.position.y;
+    mesh.position.z = field.position.z;
+    scene.add(mesh);
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = field.position.x + field.size.x;
+    mesh.position.y = field.position.y;
+    mesh.position.z = field.position.z;
+    scene.add(mesh);
+    var field = universe.fields[1];
+    var geometry = new THREE.BoxGeometry(field.size.x*2, 0.001, field.size.z*2);
+    var material = new THREE.MeshLambertMaterial({
+        color: 0x00ffff
+    });
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = field.position.x;
+    mesh.position.y = field.position.y - field.size.y;
+    mesh.position.z = field.position.z;
+    scene.add(mesh);
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = field.position.x;
+    mesh.position.y = field.position.y + field.size.y;
+    mesh.position.z = field.position.z;
+    scene.add(mesh);
+
+    var stop = true;
     var render_loop = function() {
-        universe.steps(1);
-        requestAnimationFrame(render_loop);
-        _.each(universe.particles, function(particle) {
-            mesh = particle.mesh;
-            mesh.position.x = particle.position.x;
-            mesh.position.y = particle.position.y;
-            mesh.position.z = particle.position.z;
-        });
+        if(!stop){
+            universe.steps(3);
+            requestAnimationFrame(render_loop);
+            _.each(universe.particles, function(particle) {
+                mesh = particle.mesh;
+                mesh.position.x = particle.position.x;
+                mesh.position.y = particle.position.y;
+                mesh.position.z = particle.position.z;
+            });
+        }
         renderer.render(scene, camera);
+        var part = universe.particles[0];
+        $("#particle_info").html("<h3>Particle</h3>Position: "+
+            part.position.toString()+"<br>Velocity: "+ part.velocity.toString());
     }
     render_loop();
+    $("#start").click(function(){
+        var part = universe.particles[0];
+        part.position = new ES.Vector(0,0,0);
+        part.velocity = new ES.Vector(0,0,0);
+        universe.fields[0].charge = parseInt($("#pv").val())/0.1;
+        stop = true;
+        _.delay(function(){
+            stop = false;
+            render_loop();
+        },100);
+    });
+    $("#stop").click(function(){
+        stop = true;
+    });
 </script>

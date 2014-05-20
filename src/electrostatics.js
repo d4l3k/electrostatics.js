@@ -70,6 +70,9 @@
     Vector.prototype.less = function(vec) {
         return this.x < vec.x && this.y < vec.y && this.z < vec.z;
     };
+    Vector.prototype.toString = function(){
+        return "<"+this.x.toFixed(8)+", "+this.y.toFixed(8)+", "+this.z.toFixed(8)+">";
+    }
     ES.Vector = Vector;
 
     // ES.PointCharge
@@ -111,7 +114,7 @@
         //self.mass = Math.pow(10,100);
         this.charge = charge;
         this.position = position;
-        this.size = size;
+        this.size = size.multiply(0.5);
         this.direction = direction.clone().normalize();
     }
     UniformElectricField.prototype.force = function(other) {
