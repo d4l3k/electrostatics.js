@@ -28,8 +28,8 @@
     var universe = new ES.Universe(0.0000000001);
 
     universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
-    universe.add(new ES.UniformElectricField(500/0.05, new ES.Vector(0,0,0),
-        new ES.Vector(0.1, 1, 1), new ES.Vector(-1,0,0)));
+    universe.add(new ES.UniformElectricField(500 / 0.05, new ES.Vector(0, 0, 0),
+        new ES.Vector(0.1, 1, 1), new ES.Vector(-1, 0, 0)));
     //universe.add( new ES.Electron(new ES.Vector(0.1,-0.05,0.0)));
 
     //universe.add( new ES.PointCharge(1, ES.elementary_charge*10, new ES.Vector(0.0,0.0,0.0)));
@@ -81,17 +81,17 @@
     }
     render_loop();
 
-(function(){
-    for(var i=1; i<= 20; i++){
-        var stepsize = Math.pow(10, -i);
-        // GOOD 0.0000000001
-        var test_universe = new ES.Universe(stepsize);
+    (function() {
+        for (var i = 1; i <= 20; i++) {
+            var stepsize = Math.pow(10, -i);
+            // GOOD 0.0000000001
+            var test_universe = new ES.Universe(stepsize);
 
-        test_universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
-        test_universe.add(new ES.UniformElectricField(500/0.05, new ES.Vector(0,0,0),
-            new ES.Vector(0.1, 1, 1), new ES.Vector(-1,0,0)));
-        test_universe.steps(1000000);
-        console.log("UNVIERSE", stepsize, test_universe.particles[0].velocity.x);
-    }
-})();
+            test_universe.add(new ES.Electron(new ES.Vector(0.0, 0.0, 0.0)));
+            test_universe.add(new ES.UniformElectricField(500 / 0.05, new ES.Vector(0, 0, 0),
+                new ES.Vector(0.1, 1, 1), new ES.Vector(-1, 0, 0)));
+            test_universe.steps(1000000);
+            console.log("UNVIERSE", stepsize, test_universe.particles[0].velocity.x);
+        }
+    })();
 </script>

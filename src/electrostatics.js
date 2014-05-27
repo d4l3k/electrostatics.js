@@ -70,9 +70,9 @@
     Vector.prototype.less = function(vec) {
         return this.x < vec.x && this.y < vec.y && this.z < vec.z;
     };
-    Vector.prototype.toString = function(){
-        return "<"+this.x.toFixed(8)+", "+this.y.toFixed(8)+", "+this.z.toFixed(8)+">";
-    }
+    Vector.prototype.toString = function() {
+        return '<'+ this.x.toFixed(8) + ', '+ this.y.toFixed(8) + ', '+ this.z.toFixed(8) + '>';
+    };
     ES.Vector = Vector;
 
     // ES.PointCharge
